@@ -32,14 +32,14 @@ body {
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(circle at 12% 14%, rgba(223,255,0,.42), transparent 18%),
-    radial-gradient(circle at 86% 22%, rgba(255,77,109,.36), transparent 24%),
-    radial-gradient(circle at 58% 88%, rgba(50,245,200,.30), transparent 22%),
-    linear-gradient(145deg, #100818 0%, #24134F 48%, #003B46 100%);
+    radial-gradient(circle at 12% 14%, rgba(27, 27, 27,.42), transparent 18%),
+    radial-gradient(circle at 86% 22%, rgba(255, 183, 197,.36), transparent 24%),
+    radial-gradient(circle at 58% 88%, rgba(152, 255, 152,.30), transparent 22%),
+    linear-gradient(145deg, #ffffff 0%, #fafafa 48%, #eeeeee 100%);
 }
 
 a {
-  color: var(--pastel-yellow);
+  color: var(--jet-black);
   text-decoration: none;
 }
 a:hover {
@@ -64,11 +64,11 @@ input, textarea, select {
   width: 100%;
 }
 input:focus, textarea:focus, select:focus {
-  border-color: var(--pastel-yellow);
+  border-color: var(--jet-black);
 }
 
 ::selection {
-  background: rgba(223, 255, 0, 0.25);
+  background: rgba(27, 27, 27, 0.25);
   color: #fff;
 }
 
@@ -79,7 +79,7 @@ input:focus, textarea:focus, select:focus {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(220, 199, 255, 0.15);
+  background: rgba(230, 230, 250, 0.15);
   border-radius: 3px;
 }
 

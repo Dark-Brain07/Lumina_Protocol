@@ -18,7 +18,7 @@ export function Layout() {
       <header className="masthead">
         <div className="masthead-inner">
           <Link to="/" className="masthead-brand">
-            <span className="brand-mark">C</span>
+            <span className="brand-mark">L</span>
             <span className="brand-text">LUMINA</span>
           </Link>
 
