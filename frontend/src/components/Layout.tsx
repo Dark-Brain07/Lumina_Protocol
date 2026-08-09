@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useWallet } from '../hooks/useWallet';
-import { Zap, Plus, User, BarChart3 } from 'lucide-react';
+import { Zap, Plus, User, BarChart3, LogOut } from 'lucide-react';
 
 export function Layout() {
   const wallet = useWallet();
@@ -52,6 +52,9 @@ export function Layout() {
                   <User size={14} />
                   {wallet.address?.slice(0, 6)}...{wallet.address?.slice(-4)}
                 </Link>
+                <button className="disconnect-btn" onClick={wallet.disconnect} title="Disconnect">
+                  <LogOut size={16} />
+                </button>
               </div>
             ) : wallet.hasWallet ? (
               <button className="connect-btn" onClick={wallet.connect}>

@@ -66,6 +66,16 @@ export function useWallet() {
     }
   }, []);
 
+  const disconnect = useCallback(() => {
+    setState(s => ({
+      ...s,
+      address: null,
+      chainId: null,
+      isConnected: false,
+      isCorrectNetwork: false,
+    }));
+  }, []);
+
   useEffect(() => {
     refresh();
     if (!window.ethereum) return;
@@ -82,5 +92,5 @@ export function useWallet() {
     };
   }, [refresh]);
 
-  return { ...state, connect, switchNetwork, refresh };
+  return { ...state, connect, disconnect, switchNetwork, refresh };
 }
