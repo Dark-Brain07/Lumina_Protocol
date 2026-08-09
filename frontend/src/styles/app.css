@@ -112,7 +112,7 @@
 .wallet-address:hover { text-decoration: none; border-color: var(--jet-black); }
 .connect-btn, .switch-btn {
   padding: 0.375rem 1rem;
-  background: var(--jet-black);
+  background: var(--pastel-mint);
   color: var(--doodle-black);
   border: none;
   border-radius: var(--radius-pill);
