@@ -128,30 +128,34 @@ export async function waitForReceipt(
 ): Promise<{ status: 'success' | 'error'; data?: unknown }> {
   try {
     const client = getReadClient();
-    const receipt = await client.waitForTransactionReceipt({
-      hash: txHash as `0x${string}` & { length: 66 },
-      retries: 600,
-    } as any); // cast to any to allow passing genlayer specific params if needed
-    
-    // GenLayer returns status as an integer (1=ACCEPTED, 3=FINALIZED, 2=CANCELED, 4=UNDETERMINED)
-    const status = (receipt as Record<string, unknown>).status ?? 
-      (receipt as Record<string, unknown>).statusName;
-      
-    if (status === 'ACCEPTED' || status === 'FINALIZED' || status === 1 || status === 3) {
-      return { status: 'success', data: receipt };
+    let attempts = 0;
+    while (attempts < 60) {
+      try {
+        const receipt = await client.getTransaction({ hash: txHash as any });
+        if (receipt) {
+          const status = (receipt as any).status_name || (receipt as any).statusName || String((receipt as any).status);
+          const execResult = (receipt as any).execution_result || (receipt as Record<string, unknown>).result;
+          
+          if (status === 'FINALIZED' || status === 'ACCEPTED' || status === '3' || status === '1') {
+            if (execResult === 'ERROR' || execResult === 0) {
+              return { status: 'error', data: receipt };
+            }
+            return { status: 'success', data: receipt };
+          }
+          if (status === 'CANCELED' || status === 'UNDETERMINED' || status === '2' || status === '4') {
+            return { status: 'error', data: receipt };
+          }
+        }
+      } catch (e) {
+        // ignore fetch errors and keep polling
+      }
+      attempts++;
+      await new Promise(r => setTimeout(r, 2000)); // poll every 2 seconds for up to 120 seconds
     }
-    if (status === 'CANCELED' || status === 'UNDETERMINED' || status === 2 || status === 4) {
-      return { status: 'error', data: receipt };
-    }
-    
-    // If it reverted (EVM 0) or is an unknown error state
-    if (status === 0 || status === 'REVERTED') {
-      return { status: 'error', data: receipt };
-    }
-    
-    return { status: 'success', data: receipt };
+    console.error("waitForReceipt timeout after 120 seconds");
+    return { status: 'error' };
   } catch (err) {
-    console.error("waitForReceipt timeout or error:", err);
+    console.error("waitForReceipt error:", err);
     return { status: 'error' };
   }
 }
