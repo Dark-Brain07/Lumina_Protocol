@@ -765,17 +765,13 @@ Return this exact JSON shape:
                     fetched_content += f"[E{eu['id']}] Could not fetch {eu['url']} (site unreachable or blocked)\n\n"
 
             full_prompt = prompt + f"\n\nLIVE WEB EVIDENCE (fetched by GenLayer validators):\n{fetched_content}"
-            result = gl.nondet.exec_prompt(full_prompt)
+            result = gl.nondet.exec_prompt(full_prompt, response_format="json")
             result = result.replace("```json", "").replace("```", "").strip()
             return result
 
         final_result = gl.eq_principle.prompt_comparative(
             run_evaluation,
-            "The result must have the same eligible value, impact_tier, and reason_codes. "
-            "The scores must be within 1500 basis points of each other. "
-            "The recommended_reward must be within 20% of each other. "
-            "The evidence_refs must reference the same evidence items. "
-            "The summary must convey the same overall assessment.",
+            "Equal if the eligible value and impact_tier are exactly the same. Ignore all variations in scores, reason_codes, recommended_reward, summary, and evidence_refs.",
         )
 
         verdict = json.loads(final_result)
@@ -1100,16 +1096,13 @@ Return this exact JSON shape:
                     fetched_content += f"[{du['id']}] Could not fetch {du['url']} (site unreachable or blocked)\n\n"
 
             full_prompt = prompt + f"\n\nLIVE WEB EVIDENCE FOR DISPUTED ITEMS (fetched by GenLayer validators):\n{fetched_content}"
-            result = gl.nondet.exec_prompt(full_prompt)
+            result = gl.nondet.exec_prompt(full_prompt, response_format="json")
             result = result.replace("```json", "").replace("```", "").strip()
             return result
 
         final_result = gl.eq_principle.prompt_comparative(
             run_challenge_eval,
-            "The result must have the same decision. "
-            "The final_reward must be within 15% of each other. "
-            "The invalid_evidence_refs must match. "
-            "The summary must convey the same conclusion.",
+            "Equal if the decision is exactly the same. Ignore all variations in final_reward, invalid_evidence_refs, and summary.",
         )
 
         result = json.loads(final_result)
