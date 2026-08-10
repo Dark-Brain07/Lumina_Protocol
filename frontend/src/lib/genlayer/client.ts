@@ -130,18 +130,28 @@ export async function waitForReceipt(
     const client = getReadClient();
     const receipt = await client.waitForTransactionReceipt({
       hash: txHash as `0x${string}` & { length: 66 },
-      retries: 200,
-    });
-    const status = (receipt as Record<string, unknown>).status ||
+      retries: 600,
+    } as any); // cast to any to allow passing genlayer specific params if needed
+    
+    // GenLayer returns status as an integer (1=ACCEPTED, 3=FINALIZED, 2=CANCELED, 4=UNDETERMINED)
+    const status = (receipt as Record<string, unknown>).status ?? 
       (receipt as Record<string, unknown>).statusName;
-    if (status === 'ACCEPTED' || status === 'FINALIZED') {
+      
+    if (status === 'ACCEPTED' || status === 'FINALIZED' || status === 1 || status === 3) {
       return { status: 'success', data: receipt };
     }
-    if (status === 'CANCELED' || status === 'UNDETERMINED') {
+    if (status === 'CANCELED' || status === 'UNDETERMINED' || status === 2 || status === 4) {
       return { status: 'error', data: receipt };
     }
+    
+    // If it reverted (EVM 0) or is an unknown error state
+    if (status === 0 || status === 'REVERTED') {
+      return { status: 'error', data: receipt };
+    }
+    
     return { status: 'success', data: receipt };
-  } catch {
+  } catch (err) {
+    console.error("waitForReceipt timeout or error:", err);
     return { status: 'error' };
   }
 }
