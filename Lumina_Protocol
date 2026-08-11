@@ -1,0 +1,8 @@
+Lumina Protocol
+Title: Lumina Protocol: Living Bounties Evaluated by AI Category: Projects & Milestones Description: Lumina Protocol replaces traditional one-and-done bounties with "Living Bounties". Built on a React/Vite frontend and a Python Intelligent Contract running on the GenVM, the protocol periodically evaluates open-source contributions over time. GenLayer validators dynamically crawl the web to review GitHub activity and documentation as evidence. Using gl.eq_principle.prompt_comparative, the LLM validators reach consensus on the ongoing real-world impact of the project to dispense continuous, dynamic rewards from a sponsored reserve pool.
+
+Contract Address: 0xC2328B037A6b0812bb966E786992E777f1003e2b
+Explorer Link: https://explorer-studio.genlayer.com/address/0xC2328B037A6b0812bb966E786992E777f1003e2b
+Source Code: https://github.com/Dark-Brain07/Lumina_Protocol
+Live Deployment: https://lumina-protocol-tau.vercel.app/
+Studio Link : https://studio.genlayer.com/?import-contract=0xC2328B037A6b0812bb966E786992E777f1003e2b
