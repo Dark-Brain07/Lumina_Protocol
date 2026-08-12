@@ -224,6 +224,7 @@ class LuminaProtocol(gl.Contract):
         lifetime_reward_cap: str,
         max_cycle_reward: str,
         review_interval_seconds: str,
+        expiry_seconds: str,
     ) -> str:
         self._require_not_paused()
 
@@ -254,6 +255,10 @@ class LuminaProtocol(gl.Contract):
             raise gl.vm.UserError("EXPECTED: max cycle reward must be > 0")
         if interval < MIN_REVIEW_INTERVAL or interval > MAX_REVIEW_INTERVAL:
             raise gl.vm.UserError(f"EXPECTED: review interval must be {MIN_REVIEW_INTERVAL}-{MAX_REVIEW_INTERVAL} seconds")
+
+        expiry = int(expiry_seconds)
+        if expiry <= 0:
+            raise gl.vm.UserError("EXPECTED: expiry must be > 0")
 
         total_required = initial_r + pool
         sent = int(gl.message.value)
@@ -289,6 +294,7 @@ class LuminaProtocol(gl.Contract):
             "evidence_count": 0,
             "last_review_id": "",
             "current_baseline_id": "",
+            "expires_at": self._now() + expiry,
         }
 
         self._save_bounty(bounty_id, bounty)
@@ -780,7 +786,7 @@ Return this exact JSON shape:
 
         final_result = gl.eq_principle.prompt_comparative(
             run_evaluation,
-            "Equal if the eligible value and impact_tier are exactly the same. Ignore all variations in scores, reason_codes, recommended_reward, summary, and evidence_refs.",
+            "Equal if the eligible value, impact_tier, and rewarded_evidence_refs are exactly the same. Ignore all variations in scores, reason_codes, recommended_reward, summary, and evidence_refs.",
         )
 
         verdict = json.loads(final_result)
@@ -824,9 +830,7 @@ Return this exact JSON shape:
             if reref not in valid_evidence_ids:
                 raise gl.vm.UserError(f"LLM_ERROR: unknown rewarded evidence reference '{reref}'")
 
-        rec_reward = verdict["recommended_reward"]
-        if not isinstance(rec_reward, int) or rec_reward < 0:
-            raise gl.vm.UserError("LLM_ERROR: recommended_reward must be non-negative integer")
+        rec_reward = (max_possible * tier) // 4
 
         if verdict["manipulation_risk_bps"] >= MANIPULATION_RISK_THRESHOLD:
             rec_reward = 0
@@ -1117,7 +1121,7 @@ Return this exact JSON shape:
 
         final_result = gl.eq_principle.prompt_comparative(
             run_challenge_eval,
-            "Equal if the decision is exactly the same. Ignore all variations in final_reward, invalid_evidence_refs, and summary.",
+            "Equal if the decision, final_reward, and invalid_evidence_refs are exactly the same. Ignore all variations in reason_codes and summary.",
         )
 
         result = json.loads(final_result)
@@ -1194,10 +1198,20 @@ Return this exact JSON shape:
     @gl.public.write
     def close_expired_bounty(self, bounty_id: str) -> str:
         bounty = self._get_bounty(bounty_id)
+        
+        if gl.message.sender_address.as_hex != bounty["sponsor"]:
+            raise gl.vm.UserError("EXPECTED: only sponsor can close expired bounty")
+            
+        if self._now() < bounty.get("expires_at", 0):
+            raise gl.vm.UserError("EXPECTED: bounty has not expired yet")
+            
         if bounty["status"] in (BOUNTY_CLOSED, BOUNTY_EXPIRED):
             raise gl.vm.UserError("EXPECTED: bounty already closed")
 
         remaining = bounty["lumina_pool_remaining"]
+        if not bounty.get("initial_reward_released", True):
+            remaining += bounty["initial_reward"]
+            
         if remaining > 0:
             _Recipient(Address(bounty["sponsor"])).emit_transfer(
                 value=u256(remaining)
